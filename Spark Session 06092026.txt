@@ -1,0 +1,210 @@
+#Spark-Core
+
+RDD : Resilient DIstributed Dataset
+immutable in nature 
+RDD divided into mutiple partitions
+
+
+Partitions - 
+imp parallel processing
+it should not quite more or less
+imp for optimization
+Number of partitions depend on source
+HDFS blocks=RDD partitions 
+LFS = 2 partitions
+Number of partitions= number of op files 
+
+
+3 ways to create RDD :
+#1.from collection (using parallelize)
+
+ls=["Java","Scala","Python","R","Cpp"]
+
+rdd=spark.sparkContext.parallelize(ls)
+
+rdd.getNumPartitions()
+
+rdd1=rdd.map(lambda x:x+" Programming")
+
+rdd1.collect()
+
+expected op:
+op_ls=["Java Pragramming","Scala Pragramming","Python Pragramming","R Pragramming","Cpp Pragramming"]
+
+
+
+2.from external file (using textFile)
+
+data.txt
+Java
+Scala
+Python
+Cpp
+R
+
+rdd=spark.sparkContext.textFile("D:/tmp/data.txt")
+
+rdd.getNumPartitions()
+
+rdd.collect()
+
+rdd1=rdd.map(lambda x:x+" Partitions")
+
+rdd1.getNumPartitions()
+
+rdd1.collect()
+
+rdd1.saveAsTextFile("D:/tmp/sop1")
+
+
+expected op:
+Java Programming
+Scala Programming
+Python Programming
+Cpp Programming
+R Programming
+
+
+#3.from existing RDD 
+
+data.txt
+Java
+Scala
+Python
+Cpp
+R
+
+rdd=spark.sparkContext.textFile("D:/tmp/data.txt")
+
+rdd.getNumPartitions()
+
+rdd.collect()
+
+rdd1=rdd.map(lambda x:x+" Partitions")
+
+rdd1.getNumPartitions()
+
+rdd1.collect()
+
+rdd1.saveAsTextFile("D:/tmp/sop1")
+
+
+#Operations on RDD***** 
+
+1.Transformation
+Operation on RDD and result we are getting new rdd - Transformation
+exm- map,filter,reduceByKey,flatMap
+
+rdd1=rdd.map(lambda x:x+" Partitions")
+
+2.Action
+Operation on RDD we are getting result as value or collection output - Action
+
+exm - collect, getNumPartitions , saveAsTextFile , count , take(n)
+
+#Word Count : 
+
+input.txt
+java is easy
+python is easy
+python is imp
+python is free
+
+rdd=spark.sparkContext.textFile("D:/tmp/input.txt")
+rdd.collect()
+
+['java is easy', 'python is easy', 'python is imp', 'python is free']
+
+rdd1=rdd.flatMap(lambda x:x.split(" "))
+rdd1.collect()
+
+['java', 'is', 'easy', 'python', 'is', 'easy', 'python', 'is', 'imp', 'python', 'is', 'free']
+
+
+rdd2=rdd1.map(lambda x:(x,1))
+rdd2.collect
+
+[('java', 1), ('is', 1), ('easy', 1), ('python', 1), ('is', 1), ('easy', 1), ('python', 1), ('is', 1), ('imp', 1), ('python', 1), ('is', 1), ('free', 1)]
+
+rdd3=rdd2.reduceByKey(lambda x,y:x+y)
+rdd3.collect()
+
+[('java', 1), ('is', 4), ('python', 3), ('imp', 1), ('free', 1), ('easy', 2)]
+
+rdd3.saveAsTextFile("D://wc_op")
+('java', 1)
+('is', 4)
+('python', 3)
+('imp', 1)
+('free', 1)
+('easy', 2)
+
+
+#email count example -
+email.txt
+Karan123@gmail.com,Rohan456@gmail.com,Amit789@gmail.com,Priya123@gmail.com,Sneha456@gmail.com,Rahul789@outlook.com,Neha123@outlook.com,Akash456@outlook.com,Pooja789@outlook.com,Vikram123@outlook.com,Ankit456@yahoo.com,Nisha789@yahoo.com,Rohit123@yahoo.com,Simran456@yahoo.com,Arjun789@yahoo.com,Kavya123@icloud.com,Aditya456@icloud.com,Meera789@icloud.com,Varun123@icloud.com,Isha456@icloud.com,Sagar789@proton.me,Riya123@proton.me,Manish456@proton.me,Tanya789@proton.me,Nitin123@proton.me,Karan456@hotmail.com,Rohan789@hotmail.com,Deepak123@hotmail.com,Anjali456@hotmail.com,Mohit789@hotmail.com,Raj123@rediffmail.com,Pankaj456@rediffmail.com,Shweta789@rediffmail.com,Vivek123@rediffmail.com,Komal456@rediffmail.com,Yash789@mail.com,Ayesha123@mail.com,Harsh456@mail.com,Divya789@mail.com,Sameer123@mail.com,Kunal456@zoho.com,Payal789@zoho.com,Abhishek123@zoho.com,Ritu456@zoho.com,Naveen789@zoho.com,Karan123@gmail.com,Rohan456@outlook.com,Priya123@yahoo.com,Sagar789@proton.me
+
+rdd=spark.sparkContext.textFile("D:/tmp/email.txt")
+rdd.collect()
+
+Karan123@gmail.com,Rohan456@gmail.com
+
+rdd1=rdd.flatMap(lambda x:x.split(","))
+rdd1.collect()
+
+Karan123@gmail.com
+Rohan456@gmail.com
+
+rdd2=rdd1.map(lambda x:x.split("@"))
+rdd2.collect()
+
+['Karan123', 'gmail.com']
+['Rohan456', 'gmail.com']
+
+rdd3=rdd2.map(lambda x:x[1])
+rdd3.collect()
+
+'gmail.com'
+'gmail.com'
+
+rdd4=rdd3.map(lambda x:(x,1))
+rdd4.collect()
+
+
+'gmail.com',1
+'gmail.com',1
+
+rdd5=rdd4.reduceByKey(lambda x,y:x+y)
+rdd5.collect()
+
+[('gmail.com', 6), ('yahoo.com', 6), ('zoho.com', 5), ('outlook.com', 6), ('icloud.com', 5), ('proton.me', 6), ('hotmail.com', 5), ('rediffmail.com', 5), ('mail.com', 5)]
+
+>>> rdd5.getNumPartitions()
+2
+
+rdd5.saveAsTextFile("D://tmp/email_cnt_op")
+('gmail.com', 6)
+('yahoo.com', 6)
+('zoho.com', 5)
+('outlook.com', 6)
+('icloud.com', 5)
+('proton.me', 6)
+('hotmail.com', 5)
+('rediffmail.com', 5)
+('mail.com', 5)
+
+================================================================
+#Lazy Evalution : 
+
+
+rdd=spark.sparkContext.textFile("D:/tmp/email1424254254.txt")
+
+rdd1=rdd.flatMap(lambda x:x.split(","))
+
+rdd2=rdd1.map(lambda x:x.split("@"))
+
+rdd3=rdd2.map(lambda x:x[1])
+
+rdd4=rdd3.map(lambda x:(x,1))
+
+rdd4.collect()
